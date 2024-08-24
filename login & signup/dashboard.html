@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <style>
+      
+     body {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    background: #F0F2F5;
+    color: #333;
+    margin: 0;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-image:url("222.jpg") ;
+     }
+
+h2 {
+    font-size: 20px;
+    color: #ffb6c1;
+    font-weight: 800;
+}
+
+div {
+    background-color: #FAFAFA;
+    border: 1px solid #E0E0E0;
+    border-radius: 8px;
+    width: 35%;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+input {
+    background-color: #FAFAFA;
+    border: 1px solid #E0E0E0;
+    height: 40px;
+    width: 90%;
+    margin-bottom: 20px;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+button {
+    background-color: #ffb6c1;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+    background-color: #ffb6c1;
+    transform: scale(1.05);
+}
+
+#main {
+    list-style-type: none;
+    padding: 0;
+    width: 320px;
+    margin-top: 20px;
+    background-color: #FFF;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+#main ul {
+    padding: 0;
+    margin: 0;
+}
+
+#main ul li {
+    background-color: #FAFAFA;
+    border: 1px solid #E0E0E0;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #333;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#main ul li:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+#main ul li button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    font-size: 14px;
+}
+
+#allclear {
+    margin-top: 20px;
+    background-color: #ffb6c1;
+    padding: 10px 20px;
+    color: #fff;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#allclear:hover {
+    background-color: #ffb6c1;
+    transform: scale(1.05);
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
+    #main {
+        width: 100%;
+    }
+
+    button, #allclear {
+        width: 100%;
+        padding: 12px 0;
+    }
+
+    div {
+        width: 80%;
+    }
+}
+    </style>
+</head>
+<body>
+    <div>
+        <center>
+            <h2>To-do List</h2>
+            <input type="text" placeholder="Enter text" id="usertext">
+            <button id="adding">Add To Do</button>
+            <ul id="main"></ul> <br><br><br><br><br><br>
+            <button id="allclear" onclick="clearAll()">Clear All</button>
+       
+        </center>
+    </div>
+    <br><br>
+   <button id="signoutButton">signOut</button> 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyA-WVJ02kVpdae-wfFna0bX1014-Gk9h98",
+            authDomain: "loginsignup-b0d10.firebaseapp.com",
+            projectId: "loginsignup-b0d10",
+            storageBucket: "loginsignup-b0d10.appspot.com",
+            messagingSenderId: "31043002516",
+            appId: "1:31043002516:web:bc3421fde61ad685ded481",
+            measurementId: "G-JMKLTC626J"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const usertext = document.getElementById("usertext");
+        const btn = document.getElementById("adding");
+        const ul = document.getElementById("main");
+
+        window.onload = async function() {
+            const querySnapshot = await getDocs(collection(db, "todos"));
+            querySnapshot.forEach(doc => {
+                renderToDoItem(doc.data(), doc.id);
+            });
+        };
+       
+
+        document.getElementById('signoutButton').addEventListener('click', function() {
+            const auth = getAuth();
+            signOut(auth).then(() => {
+                console.log("User signed out.");
+                window.location.href = 'signin.html';
+            }).catch((error) => {
+                console.error("Sign out error:", error.message);
+            });
+        });
+
+
+
+
+
+
+        btn.addEventListener("click", async function() {
+            if (usertext.value.trim() !== "") {
+                const docRef = await addDoc(collection(db, "todos"), {
+                    text: usertext.value
+                });
+                renderToDoItem({ text: usertext.value }, docRef.id);
+                usertext.value = "";
+            }
+        });
+
+        // Render a to-do item
+        function renderToDoItem(item, id) {
+            const li = document.createElement("li");
+            li.setAttribute("data-id", id);
+            li.innerHTML += `<br>
+                <span>${item.text}</span> 
+                <button class="delete">Delete</button>
+                <button class="edit">Edit</button>
+            `;
+            ul.appendChild(li);
+        }
+
+        // Handle delete and edit actions
+        ul.addEventListener("click", async function(e) {
+            const li = e.target.parentNode;
+            const docId = li.getAttribute("data-id");
+
+            if (e.target.classList.contains("delete")) {
+                await deleteDoc(doc(db, "todos", docId));
+                li.remove();
+            } else if (e.target.classList.contains("edit")) {
+                const span = li.querySelector("span");
+                const currentText = span.textContent.trim();
+
+                const input = document.createElement("input");
+                input.type = "text";
+                input.value = currentText;
+
+                const saveButton = document.createElement("button");
+                saveButton.textContent = "Save";
+
+                li.insertBefore(input, span);
+                li.insertBefore(saveButton, span);
+                li.removeChild(span);
+                e.target.style.display = "none";
+
+                saveButton.addEventListener("click", async function() {
+                    const newText = input.value;
+                    span.textContent = newText;
+
+                    await updateDoc(doc(db, "todos", docId), { text: newText });
+
+                    li.insertBefore(span, input);
+                    li.removeChild(input);
+                    li.removeChild(saveButton);
+                    e.target.style.display = "inline";
+                });
+            }
+        });
+        async function clearAll() {
+    const querySnapshot = await getDocs(collection(db, "todos"));
+    const batch = writeBatch(db); 
+
+    querySnapshot.forEach((doc) => {
+        batch.delete(doc.ref);
+    });
+
+    await batch.commit(); 
+    ul.innerHTML = ""; 
+}
+
+    </script>
+</body>
+</html>
